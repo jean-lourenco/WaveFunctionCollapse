@@ -31,12 +31,14 @@ DrawBoard(board);
 
 void DrawBoard(Tile[,] tiles)
 {
+    Console.ResetColor();
     for (var y = 0; y < tiles.GetLength(0); y++)
     {
         for (var x = 0; x < tiles.GetLength(1); x++)
         {
             Console.Write(tiles[y, x]?.ToString() ?? ".");
         }
+        Console.ResetColor();
         Console.WriteLine();
     }
 
@@ -97,7 +99,7 @@ public struct Tile
     {
         return TileType switch
         {
-            TileType.Mountain => new[] { TileType.Grass, TileType.Mountain},
+            TileType.Mountain => new[] { TileType.Grass, TileType.Mountain },
             TileType.Grass => new[] { TileType.Mountain, TileType.Sand, TileType.Sand, TileType.Grass },
             TileType.Sand => new[] { TileType.Water, TileType.Grass, TileType.Sand},
             TileType.Water => new[] { TileType.Sand, TileType.Grass, TileType.Water},
