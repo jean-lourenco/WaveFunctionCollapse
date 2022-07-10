@@ -121,8 +121,9 @@ public class Tile
                 Console.ForegroundColor = ConsoleColor.Blue;
                 return "W";
             default:
-                Console.ResetColor();
-                return ".";
+                Console.BackgroundColor = ConsoleColor.Red;
+                Console.ForegroundColor = ConsoleColor.Red;
+                return "E";
         }
     }
 }
