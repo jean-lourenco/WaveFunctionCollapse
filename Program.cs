@@ -2,13 +2,16 @@
 var board = new Tile[20, 80];
 var allTilePossibilites = Enum.GetValues<TileType>().ToArray();
 
-board[0,0] = CreateRandomTile(random)!;
+var initialY = board.GetLength(0)/2;
+var initialX = board.GetLength(1)/2;
+ref var initial = ref board[initialY, initialX];
+initial.SetTile(GetRandomTileType(random));
 
 for (var y = 0; y < board.GetLength(0); y++)
 {
     for (var x = 0; x < board.GetLength(1); x++)
     {
-        if (y == 0 && x == 0) continue;
+        if (initialY == 0 && initialX == 0) continue;
 
         var possibleTiles = GetTileTypePossibilities(board, y, x);
         var newTile = CreateRandomTile(random, possibleTiles);
@@ -40,18 +43,17 @@ void DrawBoard(Tile[,] tiles)
     Console.ResetColor();
 }
 
-Tile? CreateRandomTile(Random r, TileType[]? bounds = null)
+TileType GetRandomTileType(Random r, TileType[]? bounds = null)
 {
-    var values = Enum.GetValues<TileType>()!;
+    var values = Enum.GetValues<TileType>().Except(new[]{TileType.None})!.ToArray();
 
     if (bounds != null)
         values = values.Intersect(bounds).ToArray();
 
     if (values.Length <= 0)
-        return default;
+        throw new Exception("Sem combinações possíveis");
 
-    var type = values[r.Next(values.Length)];
-    return new Tile(type);
+    return values[r.Next(values.Length)];
 }
 
 TileType[] GetTileTypePossibilities(Tile[,] tiles, int y, int x)
@@ -77,15 +79,18 @@ TileType[] GetTileTypePossibilities(Tile[,] tiles, int y, int x)
     }
 }
 
-public enum TileType { Mountain, Grass, Sand, Water, }
+public enum TileType { None, Mountain, Grass, Sand, Water, }
 
-public class Tile
+public struct Tile
 {
-    public TileType TileType { get; }
+    public TileType TileType { get; private set; }
+    public TileType[] PossibleTiles { get; private set; }
+    public int NumberOfPossibleTiles => PossibleTiles.Length;
 
-    public Tile(TileType tileType)
+    public Tile()
     {
-        TileType = tileType;
+        TileType = TileType.None;
+        PossibleTiles = Enum.GetValues<TileType>().Except(new[] {TileType.None}).ToArray();
     }
 
     public TileType[] GetPossibleNeighbours()
@@ -96,8 +101,26 @@ public class Tile
             TileType.Grass => new[] { TileType.Mountain, TileType.Sand, TileType.Sand, TileType.Grass },
             TileType.Sand => new[] { TileType.Water, TileType.Grass, TileType.Sand},
             TileType.Water => new[] { TileType.Sand, TileType.Grass, TileType.Water},
+            TileType.None => Enum.GetValues<TileType>().Except(new[] {TileType.None}).ToArray(),
             _ => throw new Exception($"TileType {TileType} not implemented"),
         };
+    }
+
+    public void ReducePossibleTiles(TileType[] types)
+    {
+        PossibleTiles = PossibleTiles.Intersect(types).ToArray();
+    }
+
+    public void SetTile(TileType type)
+    {
+        if (TileType != TileType.None)
+            throw new Exception($"TileType already set: {TileType}");
+
+        if (type == TileType.None)
+            throw new Exception($"Cannot set TileType to None");
+
+        TileType = type;
+        PossibleTiles = Enumerable.Empty<TileType>().ToArray();
     }
 
     public override string ToString()
